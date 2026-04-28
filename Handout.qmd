@@ -1,0 +1,368 @@
+---
+title: "Understanding Syntax: Python and R Compared"
+subtitle: "A Comparative Introduction for Data Analysis"
+
+author:
+  - name: "Srikumar Ravichandran - 400973950"
+    email: "ravichandran.srikumar@stud.hs-fresenius.de"
+    affiliations: Fresenius University of Applied Science
+    address: "Rösrath"
+    city: "Rösrath" 
+    corresponding: true
+
+abstract: |
+  This handout complements the presentation *Understanding Syntax: Python and R Compared*. It explains the most important syntax differences between R and Python for introductory data analysis. The focus is on variables, data structures, indexing, filtering, data manipulation, and translation between R's `dplyr` style and Python's `pandas` style. The aim is not to decide which language is better, but to help students understand how the same analytical logic can be expressed differently in each language.
+
+floatsintext: true
+
+format:
+  apaquarto-pdf:
+    documentmode: stu
+    course: Data Analysis for Decision-Making  (WS 2026/27)
+    professor: Prof. Dr. Stephan Huber
+    duedate: '2026-04-28'
+    keep-tex: false
+    fig-align: "left"
+    include-in-header:
+      text: |
+        \linespread{1.5} % 1.5 line spacing
+        \usepackage{fancyhdr}
+        \fancypagestyle{custom}{
+          \fancyhf{} % clear all header/footer fields
+          \fancyhead[R]{\thepage} % page number top-right
+        }
+        \pagestyle{custom}
+    number-sections: true
+  apaquarto-html:
+    toc: true
+    embed-resources: true
+
+a4paper: true
+bibliography: references.bib
+
+csl: _extensions/wjschne/apaquarto/apa.csl
+reference-location: document
+---
+
+# Introduction
+
+R and Python are two of the most widely used programming languages in data analysis. R was developed with a strong focus on statistical computing, data analysis, and visualisation. Python, by contrast, is a general-purpose programming language that has become highly important in data science through libraries such as `pandas`, `NumPy`, and `scikit-learn` [@mckinney2022; @python2024].
+
+For students in data analysis, the most important point is that both languages often solve the same analytical problem. The difference is mainly the syntax: how the instruction is written. Therefore, this handout explains the similarities and differences between the two languages using short practical examples.
+
+The central learning objective is:
+
+> Students should be able to read simple R and Python code, identify equivalent syntax patterns, and translate basic data manipulation operations between the two languages.
+
+
+
+
+## 2. Python and R at a Glance
+
+The following table summarises the most important differences.
+
+| Feature | R | Python |
+|------------------------|------------------------|------------------------|
+| Main purpose | Statistical computing and graphics | General-purpose programming and data science |
+| Main data structure | `data.frame` / `tibble` | `pandas.DataFrame` |
+| Assignment | `x <- 10` | `x = 10` |
+| First index | `1` | `0` |
+| Popular data package | `dplyr` / `tidyverse` | `pandas` |
+| Typical workflow | Pipe-based analysis | Method chaining / object-based analysis |
+
+Although the syntax looks different, the analytical thinking is often the same. For example, both languages can import data, clean data, filter rows, calculate summary statistics, and create visualisations. The user only needs to understand how each language expresses these tasks.
+
+## 3. Assignment and Variables
+
+A variable stores information that can be reused later. In R, the preferred assignment operator is `<-`, although `=` also works. In Python, assignment is done with `=`.
+
+::::: columns
+::: {.column width="50%"}
+**R**
+
+
+```{r}
+#| include: false
+library(reticulate)
+use_condaenv("base", required = FALSE)
+```
+
+
+
+```{r}
+student_name <- "Srikumar"
+score <- 92.5
+is_passed <- TRUE
+
+student_name
+```
+:::
+
+::: {.column width="50%"}
+**Python**
+
+```{python}
+student_name = "Srikumar"
+score = 92.5
+is_passed = True
+
+print(student_name)
+```
+:::
+:::::
+
+A small but important difference is that R uses uppercase logical values, such as `TRUE` and `FALSE`. Python uses `True` and `False`. Python is also stricter about indentation, especially in control structures such as `if` statements and loops.
+
+
+## 4. Data Structures
+
+Data structures organise information. In introductory data analysis, the most important structure is the data frame. A data frame is a table with rows and columns, similar to an Excel sheet.
+
+::::: columns
+::: {.column width="50%"}
+**R data frame**
+
+```{r}
+#| echo: false
+students <- data.frame(
+  name = c("Alice", "Bob", "Carol"),
+  score = c(88, 76, 95),
+  program = c("Finance", "Marketing", "Finance")
+)
+
+students
+```
+:::
+
+::: {.column width="50%"}
+**Python DataFrame**
+
+```{python}
+#| echo: false
+import pandas as pd
+
+
+# Create DataFrame
+students = pd.DataFrame({
+    "name": ["Alice", "Bob", "Carol"],
+    "score": [88, 76, 95],
+    "program": ["Finance", "Marketing", "Finance"]
+})
+
+# Display the DataFrame
+print(students)
+```
+:::
+:::::
+
+In R, a data frame is available in base R. In Python, the standard data frame structure usually comes from the `pandas` library [@pandas2024]. This means that Python users normally import pandas before creating or analysing tabular data.
+
+## 5. Indexing: One-Based vs. Zero-Based Counting
+
+One of the most common mistakes when moving between R and Python is indexing. R starts counting at 1, while Python starts counting at 0.
+
+::::: columns
+::: {.column width="50%"}
+**R**
+
+```{r}
+#| echo: false
+grades <- c(85, 90, 78, 92)
+
+grades[1]   # first value
+grades[2]   # second value
+```
+:::
+
+::: {.column width="50%"}
+**Python**
+
+```{python}
+#| echo: false
+grades = [85, 90, 78, 92]
+
+print(grades[0])  # first value
+print(grades[1])  # second value
+```
+:::
+:::::
+
+This distinction is small, but it can create errors in practical analysis. When translating code, the index position must always be checked carefully.
+
+
+
+## 6. Filtering and Selecting Data
+
+Filtering means keeping only rows that satisfy a condition. Selecting means keeping only specific columns.
+
+### 6.1 Filtering Rows
+
+::::: columns
+::: {.column width="50%"}
+**R with dplyr**
+
+```{r}
+#| echo: false
+library(dplyr)
+
+students |> 
+  filter(score > 80)
+```
+:::
+
+::: {.column width="50%"}
+**Python with pandas**
+
+```{python}
+#| echo: false
+import pandas as pd
+
+students = pd.DataFrame({
+    "name": ["Alice", "Bob", "Carol"],
+    "score": [88, 76, 95],
+    "program": ["Finance", "Marketing", "Finance"]
+})
+
+students[students["score"] > 80]
+```
+:::
+:::::
+
+In R, `filter()` is commonly used in the `dplyr` package. In Python, row filtering often uses Boolean indexing, where the condition is placed inside square brackets.[@wickham2017] 
+
+### 6.2 Selecting Columns
+
+::::: columns
+::: {.column width="50%"}
+**R**
+
+```{r}
+#| echo: false
+students |> 
+  select(name, score)
+```
+:::
+
+::: {.column width="50%"}
+**Python**
+
+```{python}
+#| echo: false
+students[["name", "score"]]
+```
+:::
+:::::
+
+The double square brackets in Python are important because a list of column names is passed into the DataFrame.
+
+## 7. Data Manipulation with `dplyr` and `pandas`
+
+R's `dplyr` package is popular because it makes code readable. It uses verbs such as `filter()`, `select()`, `mutate()`, `summarise()`, and `arrange()` [@wickham2017]. Python's `pandas` library performs similar tasks, but the syntax is object-oriented.
+
+| Task              | R / dplyr     | Python / pandas                  |
+|-------------------|---------------|----------------------------------|
+| Add a column      | `mutate()`    | `.assign()` or `df["new"] = ...` |
+| Filter rows       | `filter()`    | Boolean indexing or `.query()`   |
+| Sort rows         | `arrange()`   | `.sort_values()`                 |
+| Group data        | `group_by()`  | `.groupby()`                     |
+| Calculate summary | `summarise()` | `.agg()` or `.mean()`            |
+
+
+
+## 8. Complete Translation Example
+
+The following example shows how the same task can be written in R and Python. The task is to calculate price per unit, keep only products with revenue above 10,000, and sort by revenue.
+
+::::: columns
+::: {.column width="50%"}
+**R Code**
+
+```{r}
+#| echo: false
+library(dplyr)
+
+sales <- data.frame(
+  product = c("A", "B", "C", "D"),
+  revenue = c(15000, 8500, 22000, 11000),
+  units = c(120, 85, 200, 95)
+)
+
+result <- sales |>
+  mutate(price_per_unit = revenue / units) |>
+  filter(revenue > 10000) |>
+  arrange(desc(revenue))
+
+print(result)
+```
+:::
+
+::: {.column width="50%"}
+**Python Code**
+
+```{python}
+#| echo: false
+import pandas as pd
+
+sales = pd.DataFrame({
+    "product": ["A", "B", "C", "D"],
+    "revenue": [15000, 8500, 22000, 11000],
+    "units": [120, 85, 200, 95]
+})
+
+result = (
+    sales
+    .assign(price_per_unit = sales["revenue"] / sales["units"])
+    .query("revenue > 10000")
+    .sort_values("revenue", ascending=False)
+    .reset_index(drop=True)
+)
+
+print(result)
+```
+:::
+:::::
+
+The example demonstrates that the analytical logic is identical. First, a new column is created. Second, rows are filtered. Third, the output is sorted. The main difference is how each language expresses these steps.
+
+
+
+\newpage 
+# Conclusion
+The comparison between R and Python shows that syntax is a surface-level difference, while the underlying data analysis logic is often the same. A student who understands how to filter, select, group, and summarise data in one language can transfer that knowledge to the other language.
+
+The most important points are:
+
+-   R is especially strong for statistics, academic data analysis, and visualisation.
+-   Python is highly flexible and widely used for data science, automation, and machine learning.
+-   R starts indexing at 1; Python starts indexing at 0.
+-   R's pipe-based syntax is similar in purpose to pandas method chaining.
+-   Learning both languages improves analytical flexibility and makes collaboration easier.
+
+For this course, R remains the primary language because the module focuses on data analysis and decision-making using R. However, understanding Python is useful because many business analytics environments use both tools.
+
+
+# Affidavit
+
+I hereby affirm that this submitted paper was authored unaided and solely by me. Additionally, no other sources than those in the reference list were used. Parts of this paper, including tables and figures, that have been taken either verbatim or analogously from other works have in each case been properly cited with regard to their origin and authorship. This paper either in parts or in its entirety, be it in the same or similar form, has not been submitted to any other examination board and has not been published.
+
+I acknowledge that the university may use plagiarism detection software to check my thesis. I agree to cooperate with any investigation of suspected plagiarism and to provide any additional information or evidence requested by the university.
+
+## Checklist
+
+-   [x] The handout contains 7 pages of text.
+-   [x] The submission contains the Quarto file of the handout.
+-   [x] The submission contains the Quarto file of the presentation.
+-   [x] The submission contains the HTML file of the handout.
+-   [x] The submission contains the HTML file of the presentation.
+-   [x] The submission contains the PDF file of the handout.
+-   [x] The submission contains the PDF file of the presentation.
+-   [x] The title page of the presentation and the handout contain personal details (name, email, matriculation number).
+-   [x] The handout contains a bibliography, created using BibTeX with an APA citation style.
+-   [x] Either the handout or the presentation contains R code that demonstrates coding expertise.
+-   [x] The filled out Affidavit.
+-   [x] The link to the presentation and the handout published on GitHub.
+
+GitHub Repository: <https://github.com/Sri-prog-7943/Python-and-R-Compared>
+
+
+\[Srikumar Ravichandran,\] \[28 April 2026,\] \[Rösrath\]
